@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
 import com.lms.dto.DepartmentDTO;
 import com.lms.dto.FacultyReportDTO;
 import com.lms.entity.User;
@@ -23,6 +24,9 @@ import com.lms.service.UserService;
 
 @RestController
 public class UserController {
+	
+	@Autowired
+	private Cloudinary cloudinary;
 	
 	@Autowired
 	private UserService service;

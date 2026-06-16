@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.lms.dto.DepartmentDTO;
 import com.lms.dto.FacultyReportDTO;
 import com.lms.entity.Role;
@@ -27,6 +29,9 @@ import com.lms.repository.UserRepository;
 
 @Service
 public class UserService {
+	
+	@Autowired
+	private Cloudinary cloudinary;
 	
 	@Autowired
 	private UserRepository userRepo;
@@ -172,58 +177,25 @@ public class UserService {
 		return userRepo.findByFacultyIdIdAndRole(facultyId, Role.STUDENT);
 	}
 	
-	public User uploadProfileImage(
-	        int id,
-	        MultipartFile file) throws IOException {
-
-	    User user = userRepo.findById(id)
-	            .orElseThrow(() ->
-	                    new UserNotFoundException(id));
-
-	    String fileName =
-	            "user_" + id + "_" +
-	            file.getOriginalFilename();
-
-	    Path uploadPath =
-	            Paths.get("uploads/profile-images");
-
-	    Files.createDirectories(uploadPath);
-
-	    Path filePath =
-	            uploadPath.resolve(fileName);
-
-	    Files.copy(
-	            file.getInputStream(),
-	            filePath,
-	            StandardCopyOption.REPLACE_EXISTING
-	    );
-
-	    String imagePath =
-	            "uploads/profile-images/" +
-	            fileName;
-
-	    user.setProfileImage(imagePath);
-
-	    System.out.println("Before Save = "
-	            + user.getProfileImage());
-
-	    User savedUser =
-	            userRepo.save(user);
-
-	    System.out.println("After Save = "
-	            + savedUser.getProfileImage());
-
-	    return savedUser;
-	}
 	
-	@Transactional
-	public void updateDepartmentName(
-	        String oldDept,
-	        String newDept
-	) {
-	    userRepo.updateDepartmentName(
-	            oldDept,
-	            newDept
+	
+	public User uploadProfileImage(int id, MultipartFile file) throws IOException {
+
+	    // Upload to Cloudinary
+	    Map uploadResult = cloudinary.uploader().upload(
+	        file.getBytes(),
+	        ObjectUtils.asMap("folder", "leaveflow/profiles")
 	    );
+
+	    // Get the secure URL
+	    String imageUrl = (String) uploadResult.get("secure_url");
+
+	    // Save URL to user
+	    User user = userRepo.findById(id)
+	        .orElseThrow(() -> new RuntimeException("User not found"));
+
+	    user.setProfileImage(imageUrl);
+
+	    return userRepo.save(user);
 	}
 }
