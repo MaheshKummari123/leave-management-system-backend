@@ -17,6 +17,7 @@ public class CorsConfig {
                         .allowedOrigins(
                             "http://localhost:5173",
                             "https://leave-management-system-frontend-dun.vercel.app"
+                            "https://leaveflow-mahesh.vercel.app"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*");
